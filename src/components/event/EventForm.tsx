@@ -54,36 +54,38 @@ interface EventFormProps {
 /**
  * 일정 추가/수정 폼 컴포넌트
  */
-export const EventForm = ({
-  title,
-  setTitle,
-  date,
-  setDate,
-  startTime,
-  endTime,
-  handleStartTimeChange,
-  handleEndTimeChange,
-  description,
-  setDescription,
-  location,
-  setLocation,
-  category,
-  setCategory,
-  isRepeating,
-  setIsRepeating,
-  repeatType,
-  setRepeatType,
-  repeatInterval,
-  setRepeatInterval,
-  repeatEndDate,
-  setRepeatEndDate,
-  notificationTime,
-  setNotificationTime,
-  startTimeError,
-  endTimeError,
-  editingEvent,
-  onSubmit,
-}: EventFormProps) => {
+export const EventForm = (props: EventFormProps) => {
+  const {
+    title,
+    setTitle,
+    date,
+    setDate,
+    startTime,
+    endTime,
+    handleStartTimeChange,
+    handleEndTimeChange,
+    description,
+    setDescription,
+    location,
+    setLocation,
+    category,
+    setCategory,
+    isRepeating,
+    setIsRepeating,
+    repeatType,
+    setRepeatType,
+    repeatInterval,
+    setRepeatInterval,
+    repeatEndDate,
+    setRepeatEndDate,
+    notificationTime,
+    setNotificationTime,
+    startTimeError,
+    endTimeError,
+    editingEvent,
+    onSubmit,
+  } = props;
+
   return (
     <Stack spacing={2} sx={{ width: '20%' }}>
       <Typography variant="h4">{editingEvent ? '일정 수정' : '일정 추가'}</Typography>
