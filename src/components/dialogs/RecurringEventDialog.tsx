@@ -7,7 +7,7 @@ import {
   Typography,
 } from '@mui/material';
 
-import { Event } from '../types';
+import { Event } from '../../types';
 
 /**
  * Available operation modes for the recurring event dialog

@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { renderHook, act } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
-import RecurringEventDialog from '../../components/RecurringEventDialog';
+import RecurringEventDialog from '../../components/dialogs/RecurringEventDialog';
 import { useRecurringEventOperations } from '../../hooks/useRecurringEventOperations';
 import { Event } from '../../types';
 
