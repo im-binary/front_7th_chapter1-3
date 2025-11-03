@@ -57,12 +57,9 @@ interface RecurringEventDialogProps {
  * Dialog component for handling recurring event operations
  * Allows users to choose between single instance or series-wide operations
  */
-const RecurringEventDialog = ({
-  open,
-  onClose,
-  onConfirm,
-  mode = 'edit',
-}: RecurringEventDialogProps) => {
+export const RecurringEventDialog = (props: RecurringEventDialogProps) => {
+  const { open, onClose, onConfirm, mode = 'edit' } = props;
+
   /**
    * Handles the "Yes" button click - operates on single instance only
    */
@@ -111,5 +108,3 @@ const RecurringEventDialog = ({
     </Dialog>
   );
 };
-
-export default RecurringEventDialog;
