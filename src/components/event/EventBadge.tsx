@@ -24,6 +24,11 @@ export const EventBadge = (props: EventBadgeProps) => {
         ...eventBoxStyles.common,
         ...(isNotified ? eventBoxStyles.notified : eventBoxStyles.normal),
       }}
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.setData('text/plain', event.id);
+        e.dataTransfer.effectAllowed = 'move';
+      }}
     >
       <Stack direction="row" spacing={1} alignItems="center">
         {isNotified && <Notifications fontSize="small" />}

@@ -79,6 +79,30 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
     }
   };
 
+  /**
+   * 강제 업데이트: 항상 PUT으로 이벤트를 업데이트합니다.
+   */
+  const updateEvent = async (eventData: Event) => {
+    try {
+      const response = await fetch(`/api/events/${eventData.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(eventData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update event');
+      }
+
+      await fetchEvents();
+      onSave?.();
+      enqueueSnackbar(SUCCESS_MESSAGES.EVENT_UPDATED, { variant: 'success' });
+    } catch (error) {
+      console.error('Error updating event:', error);
+      enqueueSnackbar(ERROR_MESSAGES.SAVE_FAILED, { variant: 'error' });
+    }
+  };
+
   const deleteEvent = async (id: string) => {
     try {
       const response = await fetch(`/api/events/${id}`, { method: 'DELETE' });
@@ -127,5 +151,5 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return { events, fetchEvents, saveEvent, deleteEvent, createRepeatEvent };
+  return { events, fetchEvents, saveEvent, updateEvent, deleteEvent, createRepeatEvent };
 };

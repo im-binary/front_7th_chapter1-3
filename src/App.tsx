@@ -51,10 +51,8 @@ function App() {
     editEvent,
   } = useEventForm();
 
-  const { events, saveEvent, deleteEvent, createRepeatEvent, fetchEvents } = useEventOperations(
-    Boolean(editingEvent),
-    () => setEditingEvent(null)
-  );
+  const { events, saveEvent, updateEvent, deleteEvent, createRepeatEvent, fetchEvents } =
+    useEventOperations(Boolean(editingEvent), () => setEditingEvent(null));
 
   const { handleRecurringEdit, handleRecurringDelete } = useRecurringEventOperations(
     events,
@@ -72,6 +70,7 @@ function App() {
   const [overlappingEvents, setOverlappingEvents] = useState<Event[]>([]);
   const [isRecurringDialogOpen, setIsRecurringDialogOpen] = useState(false);
   const [pendingRecurringEdit, setPendingRecurringEdit] = useState<Event | null>(null);
+  const [pendingRecurringMoveTarget, setPendingRecurringMoveTarget] = useState<string | null>(null);
   const [pendingRecurringDelete, setPendingRecurringDelete] = useState<Event | null>(null);
   const [recurringEditMode, setRecurringEditMode] = useState<boolean | null>(null); // true = single, false = all
   const [recurringDialogMode, setRecurringDialogMode] = useState<'edit' | 'delete'>('edit');
@@ -79,10 +78,63 @@ function App() {
   const { enqueueSnackbar } = useSnackbar();
 
   /**
+   * 이벤트 드래그로 날짜를 변경할 때 편집 폼으로 이동시켜 변경을 저장하도록 한다.
+   * - 반복 일정은 드래그로 이동 불가
+   */
+  const handleMoveEvent = async (id: string, targetDate: string) => {
+    const eventToMove = events.find((e) => e.id === id);
+    if (!eventToMove) return;
+
+    if (eventToMove.repeat.type !== 'none' && eventToMove.repeat.interval > 0) {
+      // 반복 일정은 다이얼로그로 처리: 단일 편집 여부를 묻고 그에 따라 이동 처리
+      setPendingRecurringEdit(eventToMove);
+      setPendingRecurringMoveTarget(targetDate);
+      setRecurringDialogMode('edit');
+      setIsRecurringDialogOpen(true);
+      return;
+    }
+
+    const updatedEvent: Event = { ...eventToMove, date: targetDate };
+
+    // 겹침 검사 (다른 이벤트들과 비교)
+    const overlapping = findOverlappingEvents(
+      updatedEvent,
+      events.filter((e) => e.id !== id)
+    );
+    if (overlapping.length > 0) {
+      enqueueSnackbar('이 날짜/시간에 겹치는 일정이 있어 이동할 수 없습니다.', {
+        variant: 'error',
+      });
+      return;
+    }
+
+    // 바로 업데이트
+    await updateEvent(updatedEvent);
+  };
+
+  /**
    * 반복 일정 편집/삭제 확인 처리
    */
   const handleRecurringConfirm = async (editSingleOnly: boolean) => {
     if (recurringDialogMode === 'edit' && pendingRecurringEdit) {
+      // If there is a pending move target, this dialog was opened by a drag operation
+      if (pendingRecurringMoveTarget) {
+        console.log({ pendingRecurringMoveTarget, editSingleOnly });
+        try {
+          const updatedEvent: Event = { ...pendingRecurringEdit, date: pendingRecurringMoveTarget };
+          await handleRecurringEdit(updatedEvent, editSingleOnly);
+          enqueueSnackbar('일정이 이동되었습니다', { variant: 'success' });
+        } catch (error) {
+          console.error(error);
+          enqueueSnackbar('일정 이동 실패', { variant: 'error' });
+        }
+
+        setIsRecurringDialogOpen(false);
+        setPendingRecurringEdit(null);
+        setPendingRecurringMoveTarget(null);
+        return;
+      }
+
       // 편집 모드 저장하고 편집 폼으로 이동
       setRecurringEditMode(editSingleOnly);
       editEvent(pendingRecurringEdit);
@@ -191,6 +243,7 @@ function App() {
         editingEvent.repeat.interval > 0 &&
         recurringEditMode !== null
       ) {
+        console.log({ eventData });
         await handleRecurringEdit(eventData as Event, recurringEditMode);
         setRecurringEditMode(null);
       } else {
@@ -263,6 +316,7 @@ function App() {
           holidays={holidays}
           onViewChange={setView}
           onNavigate={navigate}
+          onMoveEvent={handleMoveEvent}
         />
 
         {/* 오른쪽: 일정 목록 */}

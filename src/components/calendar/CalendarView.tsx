@@ -13,14 +13,23 @@ interface CalendarViewProps {
   holidays: Record<string, string>;
   onViewChange: (view: 'week' | 'month') => void;
   onNavigate: (direction: 'prev' | 'next') => void;
+  onMoveEvent?: (id: string, targetDate: string) => void;
 }
 
 /**
  * 캘린더 뷰 통합 컴포넌트 (주간/월간 뷰 전환)
  */
 export const CalendarView = (props: CalendarViewProps) => {
-  const { view, currentDate, filteredEvents, notifiedEvents, holidays, onViewChange, onNavigate } =
-    props;
+  const {
+    view,
+    currentDate,
+    filteredEvents,
+    notifiedEvents,
+    holidays,
+    onViewChange,
+    onNavigate,
+    onMoveEvent,
+  } = props;
 
   return (
     <Stack flex={1} spacing={5}>
@@ -53,6 +62,7 @@ export const CalendarView = (props: CalendarViewProps) => {
           currentDate={currentDate}
           filteredEvents={filteredEvents}
           notifiedEvents={notifiedEvents}
+          onMoveEvent={onMoveEvent}
         />
       )}
       {view === 'month' && (
@@ -61,6 +71,7 @@ export const CalendarView = (props: CalendarViewProps) => {
           filteredEvents={filteredEvents}
           notifiedEvents={notifiedEvents}
           holidays={holidays}
+          onMoveEvent={onMoveEvent}
         />
       )}
     </Stack>

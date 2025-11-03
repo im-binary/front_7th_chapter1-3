@@ -57,6 +57,12 @@ export const useRecurringEventOperations = (
     }
 
     // Find ALL events that are part of the same recurring series
+    // If repeat.id is present, prefer matching by repeat.id (reliable series identifier)
+    if (targetEvent.repeat.id) {
+      const seriesEventsById = events.filter((event) => event.repeat.id === targetEvent.repeat.id);
+      return seriesEventsById.length > 1 ? seriesEventsById : [];
+    }
+
     const seriesEvents = events.filter(
       (event) => isRecurringEvent(event) && isSameRecurringSeries(event, targetEvent)
     );
@@ -124,7 +130,24 @@ export const useRecurringEventOperations = (
   ): Promise<boolean> => {
     const repeatId = originalEvent.repeat.id;
 
-    if (repeatId) {
+    // detect whether date field changed (we need to shift series by delta days)
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const originalDate = new Date(originalEvent.date);
+    const updatedDate = new Date(updatedEvent.date);
+    const deltaDays = Math.round((updatedDate.getTime() - originalDate.getTime()) / msPerDay);
+    const dateChanged = deltaDays !== 0;
+
+    const addDaysToDateString = (dateStr: string, days: number) => {
+      const d = new Date(dateStr);
+      d.setDate(d.getDate() + days);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${dd}`;
+    };
+
+    // If only non-date fields chㅌㅈanged and server has recurring API, use it.
+    if (!dateChanged && repeatId) {
       const updateData = {
         title: updatedEvent.title,
         description: updatedEvent.description,
@@ -133,12 +156,24 @@ export const useRecurringEventOperations = (
         notificationTime: updatedEvent.notificationTime,
       };
       return await updateRecurringEventOnServer(repeatId, updateData);
-    } else {
-      const results = await Promise.all(
-        relatedEvents.map((event) => updateEventOnServer({ ...event, title: updatedEvent.title }))
-      );
-      return results.every((result) => result);
     }
+
+    // For date-shifts (or when no repeatId), compute updated event list and try batch update
+    const updatedEvents = relatedEvents.map((event) => {
+      const newDate = dateChanged ? addDaysToDateString(event.date, deltaDays) : event.date;
+      return { ...event, title: updatedEvent.title, date: newDate };
+    });
+
+    // Use events-list batch PUT when possible
+    const batchUpdated = await makeApiRequest('/api/events-list', 'PUT', {
+      events: updatedEvents,
+    });
+
+    if (batchUpdated) return true;
+
+    // fallback: update one-by-one
+    const results = await Promise.all(updatedEvents.map((event) => updateEventOnServer(event)));
+    return results.every((result) => result);
   };
 
   /**

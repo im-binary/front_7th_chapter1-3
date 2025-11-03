@@ -11,20 +11,21 @@ import {
 
 import { weekDays } from '../../constants/calendar';
 import { Event } from '../../types';
-import { formatWeek, getWeekDates } from '../../utils/dateUtils';
+import { formatWeek, getWeekDates, formatDate } from '../../utils/dateUtils';
 import { EventBadge } from '../event/EventBadge';
 
 interface WeekViewProps {
   currentDate: Date;
   filteredEvents: Event[];
   notifiedEvents: string[];
+  onMoveEvent?: (id: string, targetDate: string) => void;
 }
 
 /**
  * 주간 캘린더 뷰 컴포넌트
  */
 export const WeekView = (props: WeekViewProps) => {
-  const { currentDate, filteredEvents, notifiedEvents } = props;
+  const { currentDate, filteredEvents, notifiedEvents, onMoveEvent } = props;
 
   const weekDates = getWeekDates(currentDate);
 
@@ -47,6 +48,14 @@ export const WeekView = (props: WeekViewProps) => {
               {weekDates.map((date) => (
                 <TableCell
                   key={date.toISOString()}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    const id = e.dataTransfer.getData('text/plain');
+                    if (id && onMoveEvent) {
+                      const dateString = formatDate(date, date.getDate());
+                      onMoveEvent(id, dateString);
+                    }
+                  }}
                   sx={{
                     height: '120px',
                     verticalAlign: 'top',
