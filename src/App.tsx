@@ -39,6 +39,7 @@ import { useSnackbar } from 'notistack';
 import { useState } from 'react';
 
 import RecurringEventDialog from './components/RecurringEventDialog.tsx';
+import { categories, eventBoxStyles, notificationOptions, weekDays } from './constants/calendar';
 import { useCalendarView } from './hooks/useCalendarView.ts';
 import { useEventForm } from './hooks/useEventForm.ts';
 import { useEventOperations } from './hooks/useEventOperations.ts';
@@ -54,57 +55,9 @@ import {
   getWeekDates,
   getWeeksAtMonth,
 } from './utils/dateUtils.ts';
+import { getRepeatTypeLabel } from './utils/eventFormatters';
 import { findOverlappingEvents } from './utils/eventOverlap.ts';
 import { getTimeErrorMessage } from './utils/timeValidation.ts';
-
-const categories = ['업무', '개인', '가족', '기타'];
-
-const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
-
-const notificationOptions = [
-  { value: 1, label: '1분 전' },
-  { value: 10, label: '10분 전' },
-  { value: 60, label: '1시간 전' },
-  { value: 120, label: '2시간 전' },
-  { value: 1440, label: '1일 전' },
-];
-
-// 스타일 상수
-const eventBoxStyles = {
-  notified: {
-    backgroundColor: '#ffebee',
-    fontWeight: 'bold',
-    color: '#d32f2f',
-  },
-  normal: {
-    backgroundColor: '#f5f5f5',
-    fontWeight: 'normal',
-    color: 'inherit',
-  },
-  common: {
-    p: 0.5,
-    my: 0.5,
-    borderRadius: 1,
-    minHeight: '18px',
-    width: '100%',
-    overflow: 'hidden',
-  },
-};
-
-const getRepeatTypeLabel = (type: RepeatType): string => {
-  switch (type) {
-    case 'daily':
-      return '일';
-    case 'weekly':
-      return '주';
-    case 'monthly':
-      return '월';
-    case 'yearly':
-      return '년';
-    default:
-      return '';
-  }
-};
 
 function App() {
   const {
@@ -344,7 +297,9 @@ function App() {
                               {/* ! TEST CASE */}
                               {isRepeating && (
                                 <Tooltip
-                                  title={`${event.repeat.interval}${getRepeatTypeLabel(event.repeat.type)}마다 반복${
+                                  title={`${event.repeat.interval}${getRepeatTypeLabel(
+                                    event.repeat.type
+                                  )}마다 반복${
                                     event.repeat.endDate ? ` (종료: ${event.repeat.endDate})` : ''
                                   }`}
                                 >
@@ -443,7 +398,9 @@ function App() {
                                     {/* ! TEST CASE */}
                                     {isRepeating && (
                                       <Tooltip
-                                        title={`${event.repeat.interval}${getRepeatTypeLabel(event.repeat.type)}마다 반복${
+                                        title={`${event.repeat.interval}${getRepeatTypeLabel(
+                                          event.repeat.type
+                                        )}마다 반복${
                                           event.repeat.endDate
                                             ? ` (종료: ${event.repeat.endDate})`
                                             : ''
@@ -728,7 +685,9 @@ function App() {
                       {notifiedEvents.includes(event.id) && <Notifications color="error" />}
                       {event.repeat.type !== 'none' && (
                         <Tooltip
-                          title={`${event.repeat.interval}${getRepeatTypeLabel(event.repeat.type)}마다 반복${
+                          title={`${event.repeat.interval}${getRepeatTypeLabel(
+                            event.repeat.type
+                          )}마다 반복${
                             event.repeat.endDate ? ` (종료: ${event.repeat.endDate})` : ''
                           }`}
                         >
