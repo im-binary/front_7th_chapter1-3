@@ -4,18 +4,18 @@ import { useState } from 'react';
 
 import { CalendarView } from './components/calendar/CalendarView';
 import { OverlapDialog } from './components/dialogs/OverlapDialog';
-import RecurringEventDialog from './components/dialogs/RecurringEventDialog';
+import { RecurringEventDialog } from './components/dialogs/RecurringEventDialog';
 import { EventForm } from './components/event/EventForm';
 import { EventList } from './components/event/EventList';
 import { NotificationStack } from './components/notifications/NotificationStack';
-import { useCalendarView } from './hooks/useCalendarView.ts';
-import { useEventForm } from './hooks/useEventForm.ts';
-import { useEventOperations } from './hooks/useEventOperations.ts';
-import { useNotifications } from './hooks/useNotifications.ts';
-import { useRecurringEventOperations } from './hooks/useRecurringEventOperations.ts';
-import { useSearch } from './hooks/useSearch.ts';
-import { Event, EventForm as EventFormData } from './types.ts';
-import { findOverlappingEvents } from './utils/eventOverlap.ts';
+import { useCalendarView } from './hooks/useCalendarView';
+import { useEventForm } from './hooks/useEventForm';
+import { useEventOperations } from './hooks/useEventOperations';
+import { useNotifications } from './hooks/useNotifications';
+import { useRecurringEventOperations } from './hooks/useRecurringEventOperations';
+import { useSearch } from './hooks/useSearch';
+import { Event, EventForm as EventFormData } from './types';
+import { findOverlappingEvents } from './utils/eventOverlap';
 
 function App() {
   const {
@@ -78,6 +78,9 @@ function App() {
 
   const { enqueueSnackbar } = useSnackbar();
 
+  /**
+   * 반복 일정 편집/삭제 확인 처리
+   */
   const handleRecurringConfirm = async (editSingleOnly: boolean) => {
     if (recurringDialogMode === 'edit' && pendingRecurringEdit) {
       // 편집 모드 저장하고 편집 폼으로 이동
@@ -99,10 +102,16 @@ function App() {
     }
   };
 
+  /**
+   * 이벤트가 반복 일정인지 확인
+   */
   const isRecurringEvent = (event: Event): boolean => {
     return event.repeat.type !== 'none' && event.repeat.interval > 0;
   };
 
+  /**
+   * 일정 편집 핸들러 (반복 일정 처리 포함)
+   */
   const handleEditEvent = (event: Event) => {
     if (isRecurringEvent(event)) {
       // Show recurring edit dialog
@@ -115,6 +124,9 @@ function App() {
     }
   };
 
+  /**
+   * 일정 삭제 핸들러 (반복 일정 처리 포함)
+   */
   const handleDeleteEvent = (event: Event) => {
     if (isRecurringEvent(event)) {
       // Show recurring delete dialog
@@ -127,6 +139,12 @@ function App() {
     }
   };
 
+  /**
+   * 일정 추가/수정 핸들러
+   * - 유효성 검사
+   * - 겹침 검사
+   * - 반복 일정 처리
+   */
   const addOrUpdateEvent = async () => {
     if (!title || !date || !startTime || !endTime) {
       enqueueSnackbar('필수 정보를 모두 입력해주세요.', { variant: 'error' });
@@ -204,6 +222,7 @@ function App() {
   return (
     <Box sx={{ width: '100%', height: '100vh', margin: 'auto', p: 5 }}>
       <Stack direction="row" spacing={6} sx={{ height: '100%' }}>
+        {/* 왼쪽: 일정 추가/수정 폼 */}
         <EventForm
           title={title}
           setTitle={setTitle}
@@ -235,6 +254,7 @@ function App() {
           onSubmit={addOrUpdateEvent}
         />
 
+        {/* 중앙: 캘린더 뷰 */}
         <CalendarView
           view={view}
           currentDate={currentDate}
@@ -245,6 +265,7 @@ function App() {
           onNavigate={navigate}
         />
 
+        {/* 오른쪽: 일정 목록 */}
         <EventList
           events={filteredEvents}
           notifiedEvents={notifiedEvents}
@@ -255,6 +276,7 @@ function App() {
         />
       </Stack>
 
+      {/* 겹치는 일정 확인 다이얼로그 */}
       <OverlapDialog
         open={isOverlapDialogOpen}
         overlappingEvents={overlappingEvents}
@@ -280,6 +302,7 @@ function App() {
         }}
       />
 
+      {/* 반복 일정 편집/삭제 옵션 다이얼로그 */}
       <RecurringEventDialog
         open={isRecurringDialogOpen}
         onClose={() => {
@@ -292,6 +315,7 @@ function App() {
         mode={recurringDialogMode}
       />
 
+      {/* 알림 스택 (화면 우상단) */}
       <NotificationStack
         notifications={notifications}
         onClose={(index) => setNotifications((prev) => prev.filter((_, i) => i !== index))}
