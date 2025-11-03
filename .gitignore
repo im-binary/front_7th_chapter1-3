@@ -8,3 +8,7 @@ node_modules
 /.local-browsers/
 /allure-results/
 /.allure/
+
+# Playwright
+/blob-report/
+/playwright/.auth/
