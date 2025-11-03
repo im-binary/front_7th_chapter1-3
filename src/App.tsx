@@ -1,4 +1,3 @@
-import { ChevronLeft, ChevronRight } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -11,16 +10,9 @@ import {
   FormControl,
   FormControlLabel,
   FormLabel,
-  IconButton,
   MenuItem,
   Select,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   TextField,
   Tooltip,
   Typography,
@@ -28,11 +20,11 @@ import {
 import { useSnackbar } from 'notistack';
 import { useState } from 'react';
 
-import { EventBadge } from './components/event/EventBadge';
-import { EventCard } from './components/event/EventCard';
+import { CalendarView } from './components/calendar/CalendarView';
+import { EventList } from './components/event/EventList';
 import { NotificationStack } from './components/notifications/NotificationStack';
 import RecurringEventDialog from './components/RecurringEventDialog.tsx';
-import { categories, notificationOptions, weekDays } from './constants/calendar';
+import { categories, notificationOptions } from './constants/calendar';
 import { useCalendarView } from './hooks/useCalendarView.ts';
 import { useEventForm } from './hooks/useEventForm.ts';
 import { useEventOperations } from './hooks/useEventOperations.ts';
@@ -40,14 +32,6 @@ import { useNotifications } from './hooks/useNotifications.ts';
 import { useRecurringEventOperations } from './hooks/useRecurringEventOperations.ts';
 import { useSearch } from './hooks/useSearch.ts';
 import { Event, EventForm, RepeatType } from './types.ts';
-import {
-  formatDate,
-  formatMonth,
-  formatWeek,
-  getEventsForDay,
-  getWeekDates,
-  getWeeksAtMonth,
-} from './utils/dateUtils.ts';
 import { findOverlappingEvents } from './utils/eventOverlap.ts';
 import { getTimeErrorMessage } from './utils/timeValidation.ts';
 
@@ -233,128 +217,6 @@ function App() {
 
     await saveEvent(eventData);
     resetForm();
-  };
-
-  const renderWeekView = () => {
-    const weekDates = getWeekDates(currentDate);
-    return (
-      <Stack data-testid="week-view" spacing={4} sx={{ width: '100%' }}>
-        <Typography variant="h5">{formatWeek(currentDate)}</Typography>
-        <TableContainer>
-          <Table sx={{ tableLayout: 'fixed', width: '100%' }}>
-            <TableHead>
-              <TableRow>
-                {weekDays.map((day) => (
-                  <TableCell key={day} sx={{ width: '14.28%', padding: 1, textAlign: 'center' }}>
-                    {day}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              <TableRow>
-                {weekDates.map((date) => (
-                  <TableCell
-                    key={date.toISOString()}
-                    sx={{
-                      height: '120px',
-                      verticalAlign: 'top',
-                      width: '14.28%',
-                      padding: 1,
-                      border: '1px solid #e0e0e0',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <Typography variant="body2" fontWeight="bold">
-                      {date.getDate()}
-                    </Typography>
-                    {filteredEvents
-                      .filter(
-                        (event) => new Date(event.date).toDateString() === date.toDateString()
-                      )
-                      .map((event) => (
-                        <EventBadge
-                          key={event.id}
-                          event={event}
-                          isNotified={notifiedEvents.includes(event.id)}
-                        />
-                      ))}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Stack>
-    );
-  };
-
-  const renderMonthView = () => {
-    const weeks = getWeeksAtMonth(currentDate);
-
-    return (
-      <Stack data-testid="month-view" spacing={4} sx={{ width: '100%' }}>
-        <Typography variant="h5">{formatMonth(currentDate)}</Typography>
-        <TableContainer>
-          <Table sx={{ tableLayout: 'fixed', width: '100%' }}>
-            <TableHead>
-              <TableRow>
-                {weekDays.map((day) => (
-                  <TableCell key={day} sx={{ width: '14.28%', padding: 1, textAlign: 'center' }}>
-                    {day}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {weeks.map((week, weekIndex) => (
-                <TableRow key={weekIndex}>
-                  {week.map((day, dayIndex) => {
-                    const dateString = day ? formatDate(currentDate, day) : '';
-                    const holiday = holidays[dateString];
-
-                    return (
-                      <TableCell
-                        key={dayIndex}
-                        sx={{
-                          height: '120px',
-                          verticalAlign: 'top',
-                          width: '14.28%',
-                          padding: 1,
-                          border: '1px solid #e0e0e0',
-                          overflow: 'hidden',
-                          position: 'relative',
-                        }}
-                      >
-                        {day && (
-                          <>
-                            <Typography variant="body2" fontWeight="bold">
-                              {day}
-                            </Typography>
-                            {holiday && (
-                              <Typography variant="body2" color="error">
-                                {holiday}
-                              </Typography>
-                            )}
-                            {getEventsForDay(filteredEvents, day).map((event) => (
-                              <EventBadge
-                                key={event.id}
-                                event={event}
-                                isNotified={notifiedEvents.includes(event.id)}
-                              />
-                            ))}
-                          </>
-                        )}
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Stack>
-    );
   };
 
   return (
@@ -552,65 +414,24 @@ function App() {
           </Button>
         </Stack>
 
-        <Stack flex={1} spacing={5}>
-          <Typography variant="h4">일정 보기</Typography>
+        <CalendarView
+          view={view}
+          currentDate={currentDate}
+          filteredEvents={filteredEvents}
+          notifiedEvents={notifiedEvents}
+          holidays={holidays}
+          onViewChange={setView}
+          onNavigate={navigate}
+        />
 
-          <Stack direction="row" spacing={2} justifyContent="space-between" alignItems="center">
-            <IconButton aria-label="Previous" onClick={() => navigate('prev')}>
-              <ChevronLeft />
-            </IconButton>
-            <Select
-              size="small"
-              aria-label="뷰 타입 선택"
-              value={view}
-              onChange={(e) => setView(e.target.value as 'week' | 'month')}
-            >
-              <MenuItem value="week" aria-label="week-option">
-                Week
-              </MenuItem>
-              <MenuItem value="month" aria-label="month-option">
-                Month
-              </MenuItem>
-            </Select>
-            <IconButton aria-label="Next" onClick={() => navigate('next')}>
-              <ChevronRight />
-            </IconButton>
-          </Stack>
-
-          {view === 'week' && renderWeekView()}
-          {view === 'month' && renderMonthView()}
-        </Stack>
-
-        <Stack
-          data-testid="event-list"
-          spacing={2}
-          sx={{ width: '30%', height: '100%', overflowY: 'auto' }}
-        >
-          <FormControl fullWidth>
-            <FormLabel htmlFor="search">일정 검색</FormLabel>
-            <TextField
-              id="search"
-              size="small"
-              placeholder="검색어를 입력하세요"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </FormControl>
-
-          {filteredEvents.length === 0 ? (
-            <Typography>검색 결과가 없습니다.</Typography>
-          ) : (
-            filteredEvents.map((event) => (
-              <EventCard
-                key={event.id}
-                event={event}
-                isNotified={notifiedEvents.includes(event.id)}
-                onEdit={handleEditEvent}
-                onDelete={handleDeleteEvent}
-              />
-            ))
-          )}
-        </Stack>
+        <EventList
+          events={filteredEvents}
+          notifiedEvents={notifiedEvents}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          onEditEvent={handleEditEvent}
+          onDeleteEvent={handleDeleteEvent}
+        />
       </Stack>
 
       <Dialog open={isOverlapDialogOpen} onClose={() => setIsOverlapDialogOpen(false)}>

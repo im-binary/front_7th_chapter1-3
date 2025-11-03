@@ -9,7 +9,9 @@ interface NotificationStackProps {
 /**
  * 화면 우측 상단에 표시되는 알림 스택 컴포넌트
  */
-export const NotificationStack = ({ notifications, onClose }: NotificationStackProps) => {
+export const NotificationStack = (props: NotificationStackProps) => {
+  const { notifications, onClose } = props;
+
   if (notifications.length === 0) {
     return null;
   }

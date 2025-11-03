@@ -15,7 +15,9 @@ interface EventCardProps {
 /**
  * 이벤트 목록에 표시되는 개별 이벤트 카드 컴포넌트
  */
-export const EventCard = ({ event, isNotified, onEdit, onDelete }: EventCardProps) => {
+export const EventCard = (props: EventCardProps) => {
+  const { event, isNotified, onEdit, onDelete } = props;
+
   const isRepeating = event.repeat.type !== 'none';
 
   return (

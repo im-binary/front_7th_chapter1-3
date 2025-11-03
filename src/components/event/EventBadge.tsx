@@ -13,7 +13,9 @@ interface EventBadgeProps {
 /**
  * 캘린더 셀에 표시되는 개별 이벤트 배지 컴포넌트
  */
-export const EventBadge = ({ event, isNotified }: EventBadgeProps) => {
+export const EventBadge = (props: EventBadgeProps) => {
+  const { event, isNotified } = props;
+
   const isRepeating = event.repeat.type !== 'none';
 
   return (
