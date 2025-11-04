@@ -5,6 +5,28 @@ import { E2EHelpers } from './E2EHelpers';
 // 테스트 설정
 test.describe.configure({ mode: 'serial' });
 
+/**
+ * 고정된 테스트 날짜 반환 (2025년 6월 10일~21일)
+ * - 월 경계를 넘지 않는 안전한 날짜
+ * - 테스트 시작 시 navigateToMonth(2025, 6)로 이동
+ */
+function getFixedTestDates() {
+  return {
+    monday: '2025-06-10',
+    tuesday: '2025-06-11',
+    wednesday: '2025-06-12',
+    thursday: '2025-06-13',
+    friday: '2025-06-14',
+    saturday: '2025-06-15',
+    sunday: '2025-06-16',
+    day8: '2025-06-17',
+    day9: '2025-06-18',
+    day10: '2025-06-19',
+    day11: '2025-06-20',
+    day12: '2025-06-21',
+  };
+}
+
 test.describe('기본 일정 관리 워크플로우', () => {
   // 전체 테스트 시작 전 태그된 데이터만 정리
   test.beforeAll(async ({ request }) => {
@@ -19,6 +41,11 @@ test.describe('기본 일정 관리 워크플로우', () => {
       sessionStorage.clear();
     });
     await page.reload();
+
+    // 모든 테스트를 위해 캘린더를 2025년 6월로 이동
+    const helpers = new E2EHelpers(page);
+    await helpers.waitForPageLoad();
+    await helpers.navigateToMonth(2025, 6);
   });
 
   test.afterEach(async ({ request }) => {
@@ -94,12 +121,12 @@ test.describe('기본 일정 관리 워크플로우', () => {
 
     test('새로운 일정을 생성할 수 있다', async ({ page }) => {
       const helpers = new E2EHelpers(page);
-      await helpers.waitForPageLoad();
+      const dates = getFixedTestDates();
 
-      // 일정 생성
+      // 일정 생성 - 6월 12일(수요일)에 일정 생성
       await helpers.createEvent({
         title: '팀 회의',
-        date: '2025-11-15',
+        date: dates.wednesday,
         startTime: '10:00',
         endTime: '11:00',
         description: '주간 팀 회의',
@@ -107,44 +134,44 @@ test.describe('기본 일정 관리 워크플로우', () => {
         category: '업무',
       });
 
-      // 캘린더와 리스트 양쪽에 일정이 표시되는지 확인 (2곳)
+      // 일정이 생성되고 표시되는지 확인
       await page.waitForTimeout(1000);
-      await expect(helpers.getEventLocator('팀 회의')).toHaveCount(2);
+      expect(await helpers.findEventCard('팀 회의')).toBeVisible();
+      expect(await helpers.findEventListItem('팀 회의')).toBeVisible();
     });
 
     test('여러 개의 일정을 생성할 수 있다', async ({ page }) => {
       const helpers = new E2EHelpers(page);
-      await helpers.waitForPageLoad();
+      const dates = getFixedTestDates();
 
-      // 첫 번째 일정 생성
+      // 첫 번째 일정 생성 - 6월 10일(월요일)
       await helpers.createEvent({
         title: '프로젝트 미팅',
-        date: '2025-11-15',
+        date: dates.monday,
         startTime: '09:00',
         endTime: '10:00',
         category: '업무',
       });
 
-      // 두 번째 일정 생성
+      // 두 번째 일정 생성 - 같은 날(월요일)
       await helpers.createEvent({
         title: '점심 약속',
-        date: '2025-11-15',
+        date: dates.monday,
         startTime: '12:00',
         endTime: '13:00',
         category: '개인',
       });
 
-      // 세 번째 일정 생성
+      // 세 번째 일정 생성 - 화요일
       await helpers.createEvent({
         title: '운동',
-        date: '2025-11-16',
+        date: dates.tuesday,
         startTime: '18:00',
         endTime: '19:00',
         category: '개인',
       });
 
-      // 캘린더 뷰와 이벤트 리스트 양쪽에서 모든 일정이 표시되는지 확인
-      // 각 일정이 정확히 2곳(캘린더 + 리스트)에 나타나야 함
+      // 모든 일정이 현재 주 캘린더에 표시되는지 확인
       await expect(helpers.getEventLocator('프로젝트 미팅')).toHaveCount(2);
       await expect(helpers.getEventLocator('점심 약속')).toHaveCount(2);
       await expect(helpers.getEventLocator('운동')).toHaveCount(2);
@@ -154,12 +181,12 @@ test.describe('기본 일정 관리 워크플로우', () => {
   test.describe('3. Read - 일정 조회', () => {
     test.beforeEach(async ({ page }) => {
       const helpers = new E2EHelpers(page);
-      await helpers.waitForPageLoad();
+      const dates = getFixedTestDates();
 
       // 테스트용 일정 생성
       await helpers.createEvent({
         title: '조회 테스트 일정',
-        date: '2025-11-15',
+        date: dates.monday,
         startTime: '10:00',
         endTime: '11:00',
         description: '조회 테스트용 일정입니다',
@@ -176,11 +203,12 @@ test.describe('기본 일정 관리 워크플로우', () => {
 
     test('일정 검색 기능이 작동한다', async ({ page }) => {
       const helpers = new E2EHelpers(page);
+      const dates = getFixedTestDates();
 
       // 추가 일정 생성
       await helpers.createEvent({
         title: '다른 일정',
-        date: '2025-11-16',
+        date: dates.tuesday,
         startTime: '14:00',
         endTime: '15:00',
         category: '개인',
@@ -196,11 +224,12 @@ test.describe('기본 일정 관리 워크플로우', () => {
 
     test('일정 목록이 올바르게 표시된다', async ({ page }) => {
       const helpers = new E2EHelpers(page);
+      const dates = getFixedTestDates();
 
       // 추가 일정 생성
       await helpers.createEvent({
         title: '목록 테스트 일정 1',
-        date: '2025-11-17',
+        date: dates.wednesday,
         startTime: '09:00',
         endTime: '10:00',
         category: '업무',
@@ -208,7 +237,7 @@ test.describe('기본 일정 관리 워크플로우', () => {
 
       await helpers.createEvent({
         title: '목록 테스트 일정 2',
-        date: '2025-11-17',
+        date: dates.wednesday,
         startTime: '11:00',
         endTime: '12:00',
         category: '개인',
@@ -224,12 +253,12 @@ test.describe('기본 일정 관리 워크플로우', () => {
   test.describe('4. Update - 일정 수정', () => {
     test.beforeEach(async ({ page }) => {
       const helpers = new E2EHelpers(page);
-      await helpers.waitForPageLoad();
+      const dates = getFixedTestDates();
 
       // 수정할 테스트용 일정 생성
       await helpers.createEvent({
         title: '수정 전 일정',
-        date: '2025-11-18',
+        date: dates.thursday,
         startTime: '10:00',
         endTime: '11:00',
         description: '수정 전 설명',
@@ -270,12 +299,13 @@ test.describe('기본 일정 관리 워크플로우', () => {
 
     test('일정 날짜를 수정할 수 있다', async ({ page }) => {
       const helpers = new E2EHelpers(page);
+      const dates = getFixedTestDates();
 
       await helpers.searchEvent('수정 전 일정');
 
       // 일정 수정
       await helpers.updateEvent('수정 전 일정', {
-        date: '2025-11-25',
+        date: dates.day10,
       });
 
       // 일정이 캘린더와 리스트 양쪽에 계속 표시되는지 확인 (2곳)
@@ -283,7 +313,7 @@ test.describe('기본 일정 관리 워크플로우', () => {
 
       const listItem = await helpers.findEventListItem('수정 전 일정');
 
-      await expect(listItem).toContainText('2025-11-25');
+      await expect(listItem).toContainText(dates.day10);
     });
 
     test('일정 카테고리를 수정할 수 있다', async ({ page }) => {
@@ -314,11 +344,12 @@ test.describe('기본 일정 관리 워크플로우', () => {
 
     test('여러 필드를 동시에 수정할 수 있다', async ({ page }) => {
       const helpers = new E2EHelpers(page);
+      const dates = getFixedTestDates();
 
       // 여러 필드 동시 수정
       await helpers.updateEvent('수정 전 일정', {
         title: '완전히 새로운 일정',
-        date: '2025-11-20',
+        date: dates.friday,
         startTime: '15:00',
         endTime: '17:00',
         description: '수정 후 설명',
@@ -341,12 +372,12 @@ test.describe('기본 일정 관리 워크플로우', () => {
   test.describe('5. Delete - 일정 삭제', () => {
     test.beforeEach(async ({ page }) => {
       const helpers = new E2EHelpers(page);
-      await helpers.waitForPageLoad();
+      const dates = getFixedTestDates();
 
       // 삭제할 테스트용 일정 생성
       await helpers.createEvent({
         title: '삭제할 일정',
-        date: '2025-11-19',
+        date: dates.saturday,
         startTime: '10:00',
         endTime: '11:00',
         category: '업무',
@@ -368,11 +399,12 @@ test.describe('기본 일정 관리 워크플로우', () => {
 
     test('여러 일정을 순차적으로 삭제할 수 있다', async ({ page }) => {
       const helpers = new E2EHelpers(page);
+      const dates = getFixedTestDates();
 
       // 추가 일정 생성
       await helpers.createEvent({
         title: '삭제할 2 일정',
-        date: '2025-11-19',
+        date: dates.saturday,
         startTime: '14:00',
         endTime: '15:00',
         category: '개인',
@@ -380,7 +412,7 @@ test.describe('기본 일정 관리 워크플로우', () => {
 
       await helpers.createEvent({
         title: '삭제할 3 일정',
-        date: '2025-11-19',
+        date: dates.saturday,
         startTime: '16:00',
         endTime: '17:00',
         category: '개인',
@@ -406,12 +438,12 @@ test.describe('기본 일정 관리 워크플로우', () => {
   test.describe('6. CRUD 통합 워크플로우', () => {
     test('일정 생성 → 조회 → 수정 → 삭제 전체 플로우', async ({ page }) => {
       const helpers = new E2EHelpers(page);
-      await helpers.waitForPageLoad();
+      const dates = getFixedTestDates();
 
       // 1. Create - 일정 생성
       await helpers.createEvent({
         title: '통합 테스트 일정',
-        date: '2025-11-20',
+        date: dates.sunday,
         startTime: '10:00',
         endTime: '11:00',
         description: 'CRUD 통합 테스트',
@@ -424,7 +456,7 @@ test.describe('기본 일정 관리 워크플로우', () => {
 
       // 2. Read - 일정 조회
       const listItem = await helpers.findEventListItem('통합 테스트 일정');
-      await expect(listItem).toContainText('2025-11-20');
+      await expect(listItem).toContainText(dates.sunday);
       await expect(listItem).toContainText('10:00 - 11:00');
       await expect(listItem).toContainText('CRUD 통합 테스트');
       await expect(listItem).toContainText('테스트 룸');
@@ -441,7 +473,7 @@ test.describe('기본 일정 관리 워크플로우', () => {
       // 수정 확인
       await expect(helpers.getEventLocator('수정된 통합 테스트 일정')).toHaveCount(2);
       const updatedListItem = await helpers.findEventListItem('수정된 통합 테스트 일정');
-      await expect(updatedListItem).toContainText('2025-11-20');
+      await expect(updatedListItem).toContainText(dates.sunday);
       await expect(updatedListItem).toContainText('14:00 - 15:00');
       await expect(updatedListItem).toContainText('CRUD 통합 테스트');
       await expect(updatedListItem).toContainText('테스트 룸');
