@@ -20,6 +20,12 @@ interface UpdateEventParams {
   category?: string;
 }
 
+interface RecurringEventParams extends CreateEventParams {
+  repeatType: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  repeatInterval: number;
+  repeatEndDate: string;
+}
+
 export class E2EHelpers {
   private page: Page;
 
@@ -51,9 +57,7 @@ export class E2EHelpers {
     } = params;
     await this.openEventCreateModal();
 
-    // E2E 테스트 데이터임을 표시하는 태그 추가
-    const taggedTitle = `[E2E-TEST] ${title}`;
-    await this.page.fill('text=제목', taggedTitle);
+    await this.page.fill('text=제목', title);
     await this.page.fill('input[type="date"]', date);
     const timeInputs = await this.page.locator('input[type="time"]').all();
     await timeInputs[0].fill(startTime);
@@ -81,24 +85,20 @@ export class E2EHelpers {
   }
 
   async findEventCard(title: string) {
-    // E2E 테스트 태그를 자동으로 추가
-    const taggedTitle = `[E2E-TEST] ${title}`;
-    return this.page.locator(`text=${taggedTitle}`).first();
+    return this.page.locator(`text=${title}`).first();
   }
 
   async findEventListItem(title: string) {
-    // E2E 테스트 태그를 자동으로 추가
-    const taggedTitle = `[E2E-TEST] ${title}`;
     return this.page
       .locator('div[data-testid="event-list"] > div[role="listitem"]')
-      .filter({ hasText: taggedTitle });
+      .filter({ hasText: title });
   }
 
   async openEventEditModal(title: string) {
     // 특정 제목을 포함하고 편집 버튼이 있는 컨테이너 찾기
     const eventListItem = this.page
       .locator('div[data-testid="event-list"] > div[role="listitem"]')
-      .filter({ hasText: `[E2E-TEST] ${title}` })
+      .filter({ hasText: title })
       .first();
     await eventListItem.locator('button[aria-label="Edit event"]').click();
     await this.page.waitForSelector('text=일정 수정', { timeout: 5000 });
@@ -108,7 +108,7 @@ export class E2EHelpers {
     const eventListItem = this.page
       .locator('div[data-testid="event-list"] > div[role="listitem"]')
       .filter({
-        hasText: `[E2E-TEST] ${originalTitle}`,
+        hasText: originalTitle,
         has: this.page.locator('button[aria-label="Edit event"]'),
       })
       .first();
@@ -116,9 +116,7 @@ export class E2EHelpers {
 
     const { title, date, startTime, endTime, description, location, category } = updates;
     if (title !== undefined) {
-      // 수정 시에도 E2E 태그 유지
-      const taggedTitle = `[E2E-TEST] ${title}`;
-      await this.page.fill('text=제목', taggedTitle);
+      await this.page.fill('text=제목', title);
     }
     if (date !== undefined) {
       await this.page.fill('input[type="date"]', date);
@@ -149,7 +147,7 @@ export class E2EHelpers {
 
   async deleteEvent(title: string) {
     const eventListItem = await this.findEventListItem(title);
-    await eventListItem.locator('button[aria-label="Delete event"]').click();
+    await eventListItem.first().locator('button[aria-label="Delete event"]').click();
     await this.page.waitForTimeout(1000);
   }
 
@@ -177,17 +175,23 @@ export class E2EHelpers {
     await this.page.waitForTimeout(300);
   }
 
-  // 검증 헬퍼 메서드 - 태그를 자동으로 처리하여 테스트 작성자는 신경쓰지 않아도 됨
+  // 검증 헬퍼 메서드
   getEventLocator(title: string) {
-    const taggedTitle = `[E2E-TEST] ${title}`;
-    return this.page.locator(`text=${taggedTitle}`);
+    return this.page.locator(`text=${title}`);
   }
 
-  // 정적 메서드: 태그 기반 데이터 정리 (request 필요)
+  // 정적 메서드: E2E 데이터베이스 초기화
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static async cleanupTestData(request: any, tag: string = '[E2E-TEST]') {
-    await request.delete('http://localhost:3000/api/events-by-tag', {
-      data: { tag },
-    });
+  static async cleanupTestData(request: any) {
+    // e2e.json 파일의 모든 이벤트를 삭제
+    const response = await request.get('http://localhost:3000/api/events');
+    const data = await response.json();
+
+    if (data.events && data.events.length > 0) {
+      const eventIds = data.events.map((event: { id: string }) => event.id);
+      await request.delete('http://localhost:3000/api/events-list', {
+        data: { eventIds },
+      });
+    }
   }
 }

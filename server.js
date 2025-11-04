@@ -191,27 +191,6 @@ app.delete('/api/recurring-events/:repeatId', async (req, res) => {
   res.status(204).send();
 });
 
-// E2E 테스트용 태그 기반 데이터 정리 API
-app.delete('/api/events-by-tag', async (req, res) => {
-  const events = await getEvents();
-  const { tag } = req.body;
-
-  if (!tag) {
-    return res.status(400).json({ error: 'Tag is required' });
-  }
-
-  // 태그를 포함하는 이벤트만 필터링하여 삭제
-  const remainingEvents = events.events.filter((event) => !event.title.includes(tag));
-
-  fs.writeFileSync(
-    `${__dirname}/src/__mocks__/response/${dbName}`,
-    JSON.stringify({ events: remainingEvents }, null, 2)
-  );
-
-  const deletedCount = events.events.length - remainingEvents.length;
-  res.json({ message: 'Events deleted successfully', deletedCount });
-});
-
 app.listen(port, () => {
   if (!fs.existsSync(`${__dirname}/src/__mocks__/response/${dbName}`)) {
     fs.writeFileSync(

@@ -6,6 +6,7 @@
   "scripts": {
     "server": "node server.js",
     "server:watch": "node --watch server.js",
+    "server:e2e": "TEST_ENV=e2e node server.js",
     "start": "vite",
     "dev": "concurrently \"pnpm run server:watch\" \"pnpm run start\"",
     "test": "vitest",
