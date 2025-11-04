@@ -146,7 +146,7 @@ export const useRecurringEventOperations = (
       return `${y}-${m}-${dd}`;
     };
 
-    // If only non-date fields chㅌㅈanged and server has recurring API, use it.
+    // If only non-date fields changed and server has recurring API, use it.
     if (!dateChanged && repeatId) {
       const updateData = {
         title: updatedEvent.title,
@@ -158,13 +158,20 @@ export const useRecurringEventOperations = (
       return await updateRecurringEventOnServer(repeatId, updateData);
     }
 
-    // For date-shifts (or when no repeatId), compute updated event list and try batch update
+    // Compute updated events for the series (shift dates if needed)
     const updatedEvents = relatedEvents.map((event) => {
       const newDate = dateChanged ? addDaysToDateString(event.date, deltaDays) : event.date;
       return { ...event, title: updatedEvent.title, date: newDate };
     });
 
-    // Use events-list batch PUT when possible
+    // If there's no repeatId and date didn't change, prefer updating each event individually
+    // (tests and some servers expect per-event PUTs)
+    if (!repeatId && !dateChanged) {
+      const results = await Promise.all(updatedEvents.map((event) => updateEventOnServer(event)));
+      return results.every((result) => result);
+    }
+
+    // For date-shifts (or when no repeatId and date changed), try batch update first
     const batchUpdated = await makeApiRequest('/api/events-list', 'PUT', {
       events: updatedEvents,
     });
