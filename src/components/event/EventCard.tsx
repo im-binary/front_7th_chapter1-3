@@ -21,7 +21,7 @@ export const EventCard = (props: EventCardProps) => {
   const isRepeating = event.repeat.type !== 'none';
 
   return (
-    <Box sx={{ border: 1, borderRadius: 2, p: 3, width: '100%' }}>
+    <Box sx={{ border: 1, borderRadius: 2, p: 3, width: '100%' }} role="listitem">
       <Stack direction="row" justifyContent="space-between">
         <Stack>
           <Stack direction="row" spacing={1} alignItems="center">
