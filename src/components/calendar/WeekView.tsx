@@ -19,13 +19,14 @@ interface WeekViewProps {
   filteredEvents: Event[];
   notifiedEvents: string[];
   onMoveEvent?: (id: string, targetDate: string) => void;
+  onDateClick?: (dateString: string) => void;
 }
 
 /**
  * 주간 캘린더 뷰 컴포넌트
  */
 export const WeekView = (props: WeekViewProps) => {
-  const { currentDate, filteredEvents, notifiedEvents, onMoveEvent } = props;
+  const { currentDate, filteredEvents, notifiedEvents, onMoveEvent, onDateClick } = props;
 
   const weekDates = getWeekDates(currentDate);
 
@@ -54,6 +55,12 @@ export const WeekView = (props: WeekViewProps) => {
                     if (id && onMoveEvent) {
                       const dateString = formatDate(date, date.getDate());
                       onMoveEvent(id, dateString);
+                    }
+                  }}
+                  onClick={() => {
+                    if (onDateClick) {
+                      const dateString = formatDate(date, date.getDate());
+                      onDateClick(dateString);
                     }
                   }}
                   sx={{

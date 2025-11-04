@@ -272,6 +272,14 @@ function App() {
     resetForm();
   };
 
+  /**
+   * 캘린더의 빈 날짜를 클릭할 때 날짜 채우기
+   */
+  const handleDateClick = (dateString: string) => {
+    setDate(dateString);
+    setEditingEvent(null);
+  };
+
   return (
     <Box sx={{ width: '100%', height: '100vh', margin: 'auto', p: 5 }}>
       <Stack direction="row" spacing={6} sx={{ height: '100%' }}>
@@ -317,6 +325,7 @@ function App() {
           onViewChange={setView}
           onNavigate={navigate}
           onMoveEvent={handleMoveEvent}
+          onDateClick={handleDateClick}
         />
 
         {/* 오른쪽: 일정 목록 */}

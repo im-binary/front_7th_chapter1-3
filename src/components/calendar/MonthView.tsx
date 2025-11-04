@@ -20,13 +20,14 @@ interface MonthViewProps {
   notifiedEvents: string[];
   holidays: Record<string, string>;
   onMoveEvent?: (id: string, targetDate: string) => void;
+  onDateClick?: (dateString: string) => void;
 }
 
 /**
  * 월간 캘린더 뷰 컴포넌트
  */
 export const MonthView = (props: MonthViewProps) => {
-  const { currentDate, filteredEvents, notifiedEvents, holidays, onMoveEvent } = props;
+  const { currentDate, filteredEvents, notifiedEvents, holidays, onMoveEvent, onDateClick } = props;
 
   const weeks = getWeeksAtMonth(currentDate);
 
@@ -60,6 +61,12 @@ export const MonthView = (props: MonthViewProps) => {
                         if (id && onMoveEvent && day) {
                           const dateString = formatDate(currentDate, day);
                           onMoveEvent(id, dateString);
+                        }
+                      }}
+                      onClick={() => {
+                        if (day && onDateClick) {
+                          const dateString = formatDate(currentDate, day);
+                          onDateClick(dateString);
                         }
                       }}
                       sx={{

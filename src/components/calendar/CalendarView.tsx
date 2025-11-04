@@ -11,9 +11,10 @@ interface CalendarViewProps {
   filteredEvents: Event[];
   notifiedEvents: string[];
   holidays: Record<string, string>;
-  onViewChange: (view: 'week' | 'month') => void;
-  onNavigate: (direction: 'prev' | 'next') => void;
-  onMoveEvent?: (id: string, targetDate: string) => void;
+  onDateClick?: (dateString: string) => void;
+  onViewChange: (_view: 'week' | 'month') => void;
+  onNavigate: (_direction: 'prev' | 'next') => void;
+  onMoveEvent?: (_id: string, _targetDate: string) => void;
 }
 
 /**
@@ -29,6 +30,7 @@ export const CalendarView = (props: CalendarViewProps) => {
     onViewChange,
     onNavigate,
     onMoveEvent,
+    onDateClick,
   } = props;
 
   return (
@@ -63,6 +65,7 @@ export const CalendarView = (props: CalendarViewProps) => {
           filteredEvents={filteredEvents}
           notifiedEvents={notifiedEvents}
           onMoveEvent={onMoveEvent}
+          onDateClick={onDateClick}
         />
       )}
       {view === 'month' && (
@@ -72,6 +75,7 @@ export const CalendarView = (props: CalendarViewProps) => {
           notifiedEvents={notifiedEvents}
           holidays={holidays}
           onMoveEvent={onMoveEvent}
+          onDateClick={onDateClick}
         />
       )}
     </Stack>
