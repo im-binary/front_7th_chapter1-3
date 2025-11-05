@@ -87,7 +87,7 @@ export const EventForm = (props: EventFormProps) => {
   } = props;
 
   return (
-    <Stack spacing={2} sx={{ width: '20%' }}>
+    <Stack data-testid="event-form" spacing={2} sx={{ width: '20%' }}>
       <Typography variant="h4">{editingEvent ? '일정 수정' : '일정 추가'}</Typography>
 
       <FormControl fullWidth>
