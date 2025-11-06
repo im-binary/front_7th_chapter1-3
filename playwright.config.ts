@@ -9,6 +9,8 @@ export default defineConfig({
   // 로컬에서는 CPU 코어 수만큼, CI에서는 1개 워커 사용
   // workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? 'dot' : 'html',
+  // 스냅샷 경로 설정 - OS별로 다른 스냅샷 사용하지 않음
+  snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{arg}{ext}',
   use: {
     baseURL: 'http://localhost:5173',
     trace: 'on-first-retry',
