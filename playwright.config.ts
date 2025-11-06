@@ -7,7 +7,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   // 로컬에서는 CPU 코어 수만큼, CI에서는 1개 워커 사용
-  workers: process.env.CI ? 1 : undefined,
+  // workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? 'dot' : 'html',
   use: {
     baseURL: 'http://localhost:5173',
