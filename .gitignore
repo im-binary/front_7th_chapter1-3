@@ -12,3 +12,7 @@ node_modules
 # Playwright
 /blob-report/
 /playwright/.auth/
+
+# E2E test databases (auto-generated)
+e2e.json
+e2e-*.json
