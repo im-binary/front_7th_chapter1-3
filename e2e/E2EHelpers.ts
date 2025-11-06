@@ -94,8 +94,7 @@ export class E2EHelpers {
       .filter({ hasText: title });
   }
 
-  async openEventEditModal(title: string) {
-    // 특정 제목을 포함하고 편집 버튼이 있는 컨테이너 찾기
+  async clickEventEdit(title: string) {
     const eventListItem = this.page
       .locator('div[data-testid="event-list"] > div[role="listitem"]')
       .filter({ hasText: title })
@@ -172,7 +171,6 @@ export class E2EHelpers {
    */
   async navigateToMonth(year: number, month: number) {
     // 월 뷰로 전환
-
     const viewSelect = this.page.locator('div[aria-label="뷰 타입 선택"]');
     await viewSelect.click();
     await this.page.waitForSelector('[role="listbox"]', { timeout: 3000 });
@@ -217,16 +215,6 @@ export class E2EHelpers {
       await this.page.waitForTimeout(100);
     }
 
-    await this.page.waitForTimeout(300);
-  }
-
-  async getEventCount() {
-    const eventItems = await this.page.locator('[class*="MuiListItem"]').all();
-    return eventItems.length;
-  }
-
-  async closeModal() {
-    await this.page.keyboard.press('Escape');
     await this.page.waitForTimeout(300);
   }
 

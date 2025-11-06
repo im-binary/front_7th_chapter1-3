@@ -360,7 +360,7 @@ test.describe('기본 일정 관리 워크플로우', () => {
       // 수정된 일정이 캘린더와 리스트 양쪽에 표시되는지 확인 (2곳)
       await expect(helpers.getEventLocator('완전히 새로운 일정')).toHaveCount(2);
 
-      await helpers.openEventEditModal('완전히 새로운 일정');
+      await helpers.clickEventEdit('완전히 새로운 일정');
       await expect(page.locator('input[value*="완전히 새로운 일정"]')).toBeVisible();
 
       const timeInputs = await page.locator('input[type="time"]').all();
