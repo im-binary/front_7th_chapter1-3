@@ -2,6 +2,8 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
+  // 시각적 회귀 테스트 제외 (SNAPSHOT_TEST=true일 때는 포함)
+  testIgnore: process.env.SNAPSHOT_TEST ? undefined : '**/visual-regression.spec.ts',
   // 워커별 독립 DB 사용으로 병렬 실행 가능
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
