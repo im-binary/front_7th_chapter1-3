@@ -1,5 +1,4 @@
-import { expect, test } from '@playwright/test';
-
+import { expect, test } from './fixtures';
 import { dragAndDrop } from './utils/dragAndDrop';
 import { E2EHelpers } from './utils/E2EHelpers';
 

@@ -1,6 +1,5 @@
-import { expect, test } from '@playwright/test';
-
 import { E2EHelpers } from './E2EHelpers';
+import { expect, test } from './fixtures';
 
 test.describe.configure({ mode: 'serial' });
 
