@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
-import { E2EHelpers } from './E2EHelpers';
-import { dragAndDrop } from './helpers';
+import { dragAndDrop } from './utils/dragAndDrop';
+import { E2EHelpers } from './utils/E2EHelpers';
 
 /**
  * 고정된 테스트 날짜 반환 (2025년 6월 10일~30일)
